@@ -8,7 +8,7 @@ import { generateToken } from '../utils.js';
 const userRouter = express.Router();
 
 userRouter.get('/seed',expressAsyncHandler(async(req,res) => {
-    //await User.remove({});
+    // await User.remove({});
     const createdUsers = await User.insertMany(data.users);
     res.send({ createdUsers });
 })
@@ -23,4 +23,25 @@ userRouter.post('/signin',expressAsyncHandler(async(req,res)=>{
     }
     res.status(401).send({message: 'Invalido, Email ou senha'})
 }));
+userRouter.post('/register',expressAsyncHandler(async(req,res)=>{
+    const user = new User ({name: req.body.name, email: req.body.email,password:bcrypt.hashSync(req.body.password,8)});
+    const createdUsers = await user.save();
+    res.send({
+        _id:createdUsers._id,
+        name:createdUsers.name,
+        email:createdUsers.email,
+        isAdmin:createdUsers.isAdmin,
+        token:generateToken(createdUsers)
+    });
+}
+));
+userRouter.get('/:id',expressAsyncHandler(async(req,res)=>{
+    const user = await User.findById(req.params.id);
+    if(user){
+        res.send(user);
+    } else{
+        res.status(404).send({message:'Usuario Invalido'});
+    }
+}))
+
 export default userRouter;
